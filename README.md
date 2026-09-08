@@ -10,6 +10,11 @@ usuarios registrados), envío y agregación de respuestas, estadísticas, e
 invitaciones por email con cierre automático programado de encuestas.
 
 ---
+## Demo
+
+
+https://github.com/user-attachments/assets/16aa058d-f6b3-414d-9aab-1c85d778fbd2
+
 
 ## Índice
 
