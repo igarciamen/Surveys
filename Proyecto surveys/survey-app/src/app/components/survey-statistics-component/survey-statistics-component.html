@@ -1,0 +1,94 @@
+<div class="container py-4" style="max-width: 900px">
+  <a routerLink="/surveys/manage" class="text-decoration-none small">&larr; Back to my surveys</a>
+
+  @if (loading) {
+    <div class="text-center py-5"><span class="spinner-border" role="status"></span></div>
+  } @else if (forbidden) {
+    <div class="alert alert-warning mt-3">You are not allowed to view these statistics.</div>
+  } @else if (errorMessage) {
+    <div class="alert alert-danger mt-3">{{ errorMessage }}</div>
+  } @else if (stats) {
+    <h2 class="page-title mt-2">{{ stats.title }}</h2>
+    <p class="text-muted">Statistics overview</p>
+         @if (newResponses > 0) {
+        <div class="alert alert-info py-2">
+          <strong>{{ newResponses }}</strong>
+          new response{{ newResponses === 1 ? '' : 's' }} since your last visit
+        </div>
+}
+
+
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card stat-card"><div class="card-body">
+          <div class="stat-num">{{ stats.totalResponses }}</div>
+          <div class="stat-label">Responses</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card"><div class="card-body">
+          <div class="stat-num">{{ stats.questions.length }}</div>
+          <div class="stat-label">Questions</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card"><div class="card-body">
+          <div class="stat-num-sm">{{ stats.firstResponseAt ? (stats.firstResponseAt | date:'dd/MM/yy') : '—' }}</div>
+          <div class="stat-label">First response</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card"><div class="card-body">
+          <div class="stat-num-sm">{{ stats.lastResponseAt ? (stats.lastResponseAt | date:'dd/MM/yy') : '—' }}</div>
+          <div class="stat-label">Last response</div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- Time series -->
+    <div class="card mb-4"><div class="card-body">
+      <h6 class="fw-semibold mb-3">Responses over time</h6>
+      @if (stats.responsesByDay.length === 0) {
+        <p class="text-muted small mb-0">No responses yet.</p>
+      } @else {
+        <div class="chart">
+          @for (d of stats.responsesByDay; track d.date) {
+            <div class="chart-col">
+              <div class="chart-bar" [style.height.%]="barHeight(d)" [title]="d.count + ' on ' + d.date"></div>
+              <div class="chart-count">{{ d.count }}</div>
+              <div class="chart-date">{{ d.date | date:'dd/MM' }}</div>
+            </div>
+          }
+        </div>
+        @if (busiestDay) {
+          <p class="small text-muted mt-3 mb-0">
+            Busiest day: <strong>{{ busiestDay.date | date:'dd/MM/yy' }}</strong>
+            with {{ busiestDay.count }} response{{ busiestDay.count === 1 ? '' : 's' }}.
+          </p>
+        }
+      }
+    </div></div>
+
+    <!-- Per-question highlights -->
+    <h6 class="fw-semibold mb-2">Per-question summary</h6>
+    <div class="d-flex flex-column gap-2">
+      @for (q of stats.questions; track q.questionId; let i = $index) {
+        <div class="card q-card"><div class="card-body py-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-semibold">{{ i + 1 }}. {{ q.label }}</span>
+              <span class="badge bg-light text-dark ms-2">{{ q.type }}</span>
+            </div>
+            <div class="text-end small text-muted">
+              {{ q.answered }} answered &middot; {{ ratePercent(q.answerRate) }}%
+            </div>
+          </div>
+          <div class="rate-track mt-2"><div class="rate-fill" [style.width.%]="ratePercent(q.answerRate)"></div></div>
+          <div class="small mt-1">{{ q.highlight }}</div>
+        </div></div>
+      }
+    </div>
+  }
+</div>

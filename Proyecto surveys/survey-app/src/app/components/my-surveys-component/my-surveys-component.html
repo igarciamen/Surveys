@@ -1,0 +1,59 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="page-title mb-0">My surveys</h2>
+    <a routerLink="/surveys/new" class="btn btn-primary">+ New survey</a>
+  </div>
+
+  @if (message) { <div class="alert alert-danger">{{ message }}</div> }
+
+  @if (loading) {
+    <div class="text-center py-5"><span class="spinner-border" role="status"></span></div>
+  } @else if (surveys.length === 0) {
+    <div class="alert alert-light border text-center">
+      You have no surveys yet. <a routerLink="/surveys/new">Create your first one</a>.
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr><th>Title</th><th>Status</th><th>Questions</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+          @for (s of surveys; track s.id) {
+            <tr>
+              <td class="fw-semibold">{{ s.title }}</td>
+              <td><span class="badge" [ngClass]="badgeClass(s.status)">{{ s.status }}</span></td>
+              <td>{{ s.questions.length }}</td>
+              <td class="text-end">
+                @if (s.status !== 'DRAFT') {
+                  <a class="btn btn-sm btn-outline-info me-1" [routerLink]="['/surveys', s.id, 'results']">Results</a>
+                  <a class="btn btn-sm btn-outline-primary me-1" [routerLink]="['/surveys', s.id, 'statistics']">Stats</a>
+                  <a class="btn btn-sm btn-outline-secondary me-1" [routerLink]="['/surveys', s.id, 'invitations']">Invitations</a>
+
+                }
+                @if (s.status === 'PUBLISHED') {
+                  <a class="btn btn-sm btn-outline-secondary me-1" [routerLink]="['/surveys', s.id]">View</a>
+                  <button class="btn btn-sm btn-outline-dark me-1" (click)="close(s)">Close</button>
+
+               }
+                @if (s.status === 'DRAFT') {
+                  <a class="btn btn-sm btn-outline-primary me-1" [routerLink]="['/surveys', s.id, 'edit']">Edit</a>
+                  <button class="btn btn-sm btn-success me-1" (click)="publish(s)">Publish</button>
+                }
+                <button class="btn btn-sm btn-outline-danger" (click)="remove(s)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-3 mt-3">
+        <button class="btn btn-outline-secondary btn-sm" (click)="prev()" [disabled]="page === 0">Previous</button>
+        <span class="text-muted">Page {{ page + 1 }} of {{ totalPages }}</span>
+        <button class="btn btn-outline-secondary btn-sm" (click)="next()" [disabled]="page + 1 >= totalPages">Next</button>
+      </div>
+    }
+  }
+</div>

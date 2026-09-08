@@ -1,0 +1,91 @@
+/* ============================================================
+   EUSurvey · auth form (sign up)
+   Igual que login-component.css: hereda los tokens de :root en
+   styles.css. Solo lo específico de esta pantalla.
+   ============================================================ */
+
+:host {
+  display: block;
+  padding: 2.5rem 1rem 3rem;
+  background: radial-gradient(1100px 360px at 50% -8%, rgba(0, 68, 148, 0.06), transparent 60%);
+}
+
+.container {
+  margin-top: 0;
+  max-width: 440px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--eu-blue-700);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+h2 {
+  font-size: 1.5rem;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+h2::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin: 0.6rem auto 0;
+  border-radius: 3px;
+  background: var(--eu-yellow);
+}
+
+.form-label {
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
+
+.form-control {
+  border-radius: 9px;
+  padding: 0.6rem 0.8rem;
+}
+.form-control::placeholder { color: #9aa3b2; }
+.form-control.is-invalid {
+  border-color: var(--danger);
+  background-image: none;
+  padding-right: 0.8rem;
+}
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(180, 35, 24, 0.15);
+}
+
+.alert-danger { font-size: 0.86rem; padding: 0.6rem 0.8rem; }
+
+.btn {
+  background: linear-gradient(180deg, var(--eu-blue-700) 0%, var(--eu-blue-900) 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.65rem 1rem;
+  margin-top: 0.25rem;
+  box-shadow: 0 6px 16px rgba(0, 68, 148, 0.22);
+  transition: filter 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(255, 214, 23, 0.5);
+}
+.btn:disabled {
+  background: #9fb3cf;
+  box-shadow: none;
+  opacity: 1;
+}
+
+@media (max-width: 575.98px) {
+  :host { padding-top: 1.5rem; }
+  .container { padding: 1.75rem 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-control, .btn { transition: none; }
+}

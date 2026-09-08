@@ -1,0 +1,18 @@
+/* ============================================================
+   EUSurvey · Answer survey
+   .page-title, .btn-primary y .question-card (acento lateral)
+   ya los resuelve el sistema global. Se conserva la tarjeta de
+   contraseña en tono cálido: es la puerta de entrada a una
+   encuesta protegida, y merece distinguirse del resto de tarjetas.
+   ============================================================ */
+
+.question-card .form-label {
+  color: var(--body);
+}
+
+.password-card {
+  border: 1px solid #ffe08a;
+  background: #fffbeb;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}

@@ -1,0 +1,38 @@
+<div class="container py-4" style="max-width: 760px">
+  @if (loading) {
+    <div class="text-center py-5"><span class="spinner-border" role="status"></span></div>
+  } @else if (notFound) {
+    <div class="alert alert-warning">This survey is not available.</div>
+    <a routerLink="/surveys" class="btn btn-outline-secondary btn-sm">Back to surveys</a>
+  } @else if (survey) {
+    <a routerLink="/surveys" class="text-decoration-none small">&larr; Back to surveys</a>
+    <h2 class="page-title mt-2">{{ survey.title }}</h2>
+    <p class="text-muted">{{ survey.description }}</p>
+    @if (survey.owner) { <p class="small text-muted">By {{ survey.owner.username }}</p> }
+
+    <a [routerLink]="['/surveys', survey.id, 'answer']" class="btn btn-primary mb-3">Answer this survey</a>
+
+    <hr />
+    <p class="text-muted small">Preview of the questions:</p>
+    <div class="d-flex flex-column gap-3">
+      @for (q of survey.questions; track q.id; let i = $index) {
+        <div class="card question-card">
+          <div class="card-body">
+            <label class="form-label fw-semibold">
+              {{ i + 1 }}. {{ q.label }}
+              @if (q.required) { <span class="text-danger">*</span> }
+            </label>
+            @if (q.helpText) { <div class="form-text mb-2">{{ q.helpText }}</div> }
+            @if (q.options.length > 0) {
+              <ul class="small text-muted mb-0">
+                @for (o of q.options; track o.id) { <li>{{ o.label }}</li> }
+              </ul>
+            } @else {
+              <span class="badge bg-light text-dark">{{ q.type }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

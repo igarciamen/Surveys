@@ -1,0 +1,447 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* ============================================================================
+   EUSurvey — Design System
+   ----------------------------------------------------------------------------
+   Construido sobre la identidad ya establecida en el navbar (app.css):
+   azul institucional europeo + amarillo bandera como acento puntual.
+   Aquí se extiende a toda la aplicación con un sistema de tipografía,
+   color, espaciado, tarjetas, formularios, tablas y gráficos coherente.
+
+   Firma visual: un filete amarillo de 3px ("precision mark") que aparece
+   siempre en el mismo lugar semántico — bajo los títulos de página, en el
+   borde superior de las tarjetas al interactuar, y como remate en las
+   barras de los gráficos — nunca como decoración suelta.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root {
+  /* ---- Color: azul institucional + acentos refinados ---- */
+  --eu-blue-900: #00256b;
+  --eu-blue-700: #004494;
+  --eu-blue-600: #0a5cc2;
+  --eu-blue-50:  #eef3fb;
+  --eu-yellow:      #ffd617; /* solo como acento: filetes, focus, remates */
+  --eu-gold-ink:    #92660a; /* variante legible para texto sobre fondo claro */
+
+  --ink:    #101828;
+  --body:   #344054;
+  --muted:  #667085;
+  --paper:  #f6f7fb;
+  --surface:#ffffff;
+  --border: #e4e7ec;
+
+  --success:    #067647;
+  --success-bg: #ecfdf3;
+  --warning:    #b54708;
+  --warning-bg: #fffaeb;
+  --neutral:    #475467;
+  --neutral-bg: #f2f4f7;
+  --danger:     #b42318;
+  --danger-bg:  #fdecec;
+
+  /* ---- Tipografía ---- */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* ---- Forma y elevación ---- */
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 16px 40px rgba(0, 37, 107, 0.12);
+}
+
+/* ============================================================================
+   Base
+   ============================================================================ */
+html, body {
+  background: var(--paper);
+  color: var(--body);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+a { color: var(--eu-blue-700); }
+a:hover { color: var(--eu-blue-600); }
+
+/* Foco visible consistente en toda la app (accesibilidad) */
+:focus-visible {
+  outline: 2px solid var(--eu-blue-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection { background: rgba(255, 214, 23, 0.35); }
+
+/* ============================================================================
+   Títulos de página y sección — la "firma" del sistema: filete amarillo corto,
+   no decorativo por todas partes, marcando siempre el mismo rol (inicio de
+   una vista o de un bloque de contenido).
+   ============================================================================ */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 1.3rem + 1vw, 2.1rem);
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+  position: relative;
+  padding-bottom: 0.6rem;
+}
+.page-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--eu-yellow);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin-bottom: 0.75rem;
+}
+
+/* ============================================================================
+   Tarjetas
+   ============================================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Tarjetas clicables (listado de encuestas): elevación + remate amarillo
+   al pasar el ratón/foco, coherente con el subrayado del navbar. */
+.survey-card,
+.q-card, .question-card,
+.result-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.survey-card::before,
+.q-card::before, .question-card::before,
+.result-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--eu-yellow);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+.survey-card:hover,
+.survey-card:focus-within {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.survey-card:hover::before,
+.survey-card:focus-within::before,
+.q-card::before, .question-card::before,
+.result-card::before {
+  transform: scaleX(1);
+}
+.q-card, .question-card, .result-card { box-shadow: var(--shadow-sm); }
+
+.password-card {
+  max-width: 420px;
+  margin-inline: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================================
+   Tarjetas de estadística — la cifra en la tipografía de exposición,
+   como en un informe anual; el detalle en monoespaciada para fechas.
+   ============================================================================ */
+.stat-card { text-align: center; padding: 0.25rem 0; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 600;
+  color: var(--eu-blue-900);
+  line-height: 1.1;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.4rem;
+}
+.stat-num::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 26px;
+  height: 2px;
+  background: var(--eu-yellow);
+  transform: translateX(-50%);
+}
+.stat-num-sm {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--eu-blue-900);
+}
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+/* ============================================================================
+   Botones
+   ============================================================================ */
+.btn {
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding-inline: 1.05rem;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary,
+.btn-eu {
+  background: linear-gradient(180deg, var(--eu-blue-700) 0%, var(--eu-blue-900) 100%);
+  border-color: var(--eu-blue-900);
+  color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus,
+.btn-eu:hover, .btn-eu:focus {
+  background: linear-gradient(180deg, var(--eu-blue-600) 0%, var(--eu-blue-700) 100%);
+  border-color: var(--eu-blue-700);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-outline-primary {
+  color: var(--eu-blue-700);
+  border-color: var(--eu-blue-700);
+}
+.btn-outline-primary:hover {
+  background: var(--eu-blue-50);
+  color: var(--eu-blue-900);
+  border-color: var(--eu-blue-700);
+}
+
+.btn-outline-secondary { color: var(--neutral); border-color: var(--border); }
+.btn-outline-secondary:hover { background: var(--neutral-bg); color: var(--ink); border-color: var(--neutral); }
+
+.btn-outline-danger:hover { background: var(--danger-bg); }
+.btn-success { background: var(--success); border-color: var(--success); }
+.btn-success:hover { filter: brightness(0.94); }
+
+/* ============================================================================
+   Formularios
+   ============================================================================ */
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.form-control, .form-select {
+  border-radius: var(--radius-md);
+  border-color: var(--border);
+  color: var(--ink);
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--eu-blue-600);
+  box-shadow: 0 0 0 3px var(--eu-blue-50), 0 0 0 4.5px rgba(255, 214, 23, 0.35);
+}
+.form-check-input { border-color: var(--border); }
+.form-check-input:checked {
+  background-color: var(--eu-blue-700);
+  border-color: var(--eu-blue-700);
+}
+.form-check-input:focus { box-shadow: 0 0 0 3px var(--eu-blue-50); }
+.form-text { color: var(--muted); }
+.invalid-feedback { color: var(--danger); font-weight: 500; }
+
+.search-bar .form-control {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.search-bar .btn {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* ============================================================================
+   Badges de estado — pastilla suave con texto de color, más editorial
+   que un relleno sólido saturado.
+   ============================================================================ */
+.badge {
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.4em 0.75em;
+}
+.badge.bg-success { background: var(--success-bg) !important; color: var(--success) !important; }
+.badge.bg-warning { background: var(--warning-bg) !important; color: var(--warning) !important; }
+.badge.bg-secondary { background: var(--neutral-bg) !important; color: var(--neutral) !important; }
+.badge.bg-primary { background: var(--eu-blue-50) !important; color: var(--eu-blue-700) !important; }
+.badge.bg-light {
+  background: var(--neutral-bg) !important;
+  color: var(--body) !important;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   Alertas — franja lateral de color en vez de fondo plano
+   ============================================================================ */
+.alert {
+  border: none;
+  border-left: 3px solid;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+}
+.alert-success { background: var(--success-bg); color: var(--success); border-left-color: var(--success); }
+.alert-warning { background: var(--warning-bg); color: var(--warning); border-left-color: var(--warning); }
+.alert-danger  { background: var(--danger-bg); color: var(--danger); border-left-color: var(--danger); }
+.alert-info    { background: var(--eu-blue-50); color: var(--eu-blue-900); border-left-color: var(--eu-blue-700); }
+.alert-light   { background: var(--neutral-bg); color: var(--body); border-left-color: var(--border); }
+
+/* ============================================================================
+   Tablas (listado "My surveys", etc.)
+   ============================================================================ */
+.table-responsive {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.table {
+  margin-bottom: 0;
+}
+.table thead th {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+}
+.table tbody tr:hover { background: var(--eu-blue-50); }
+.table td, .table th { vertical-align: middle; }
+
+/* ============================================================================
+   Gráficos de barras (estadísticas de respuestas por día)
+   ============================================================================ */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  height: 160px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.4rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.chart-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 34px;
+  flex: 0 0 auto; /* nunca se encoge por debajo de min-width: así aparece scroll en vez de desbordar */
+}
+.chart-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--eu-yellow) 0px, var(--eu-yellow) 3px, var(--eu-blue-600) 3px, var(--eu-blue-900) 100%);
+  transition: height 0.3s ease;
+}
+.chart-count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--eu-blue-900);
+  margin-top: 0.3rem;
+  white-space: nowrap;
+}
+.chart-date {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* En pantallas estrechas, barras algo más finas para que quepan más
+   sin tener que arrastrar tanto */
+@media (max-width: 575.98px) {
+  .chart-col { min-width: 28px; }
+  .chart { gap: 0.45rem; height: 140px; }
+}
+
+
+/* ---- Barras horizontales de distribución (resultados / tasa de respuesta) --- */
+.bar-track, .rate-track {
+  height: 8px;
+  background: var(--neutral-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill, .rate-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--eu-blue-600), var(--eu-blue-900));
+  transition: width 0.4s ease;
+}
+
+/* ============================================================================
+   Detalle: opciones de pregunta, spinner
+   ============================================================================ */
+.options-box {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+.spinner-border { color: var(--eu-blue-700); }
+
+/* ============================================================================
+   Accesibilidad: respeta prefers-reduced-motion
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .survey-card, .survey-card::before,
+  .q-card::before, .question-card::before, .result-card::before,
+  .chart-bar, .bar-fill, .rate-fill, .btn {
+    transition: none;
+  }
+}

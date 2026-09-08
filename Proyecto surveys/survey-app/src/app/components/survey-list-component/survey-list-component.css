@@ -1,0 +1,10 @@
+/* ============================================================
+   EUSurvey · Public survey catalogue
+   .page-title, .survey-card (elevación + remate amarillo) y
+   .btn-outline-primary ya los resuelve el sistema global.
+   Aquí solo el matiz propio de esta vista.
+   ============================================================ */
+
+.survey-card .card-title {
+  color: var(--eu-blue-900);
+}

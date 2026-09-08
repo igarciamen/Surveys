@@ -1,0 +1,124 @@
+services:
+
+  # ---------------- Database (one Postgres, several databases) ----------------
+  postgres:
+    image: postgres:16
+    container_name: eusurvey-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: apertura15
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- users (8081) ----------------
+  users:
+    build: ./users
+    container_name: eusurvey-users
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/usersurveyDB
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: apertura15
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------- surveys (8082) ----------------
+  surveys:
+    build: ./surveys
+    container_name: eusurvey-surveys
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/surveysDB
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: apertura15
+      USERS_BASE_URL: http://users:8081/api
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------- responses (8083) ----------------
+  responses:
+    build: ./responses
+    container_name: eusurvey-responses
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/responsesDB
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: apertura15
+      SURVEYS_BASE_URL: http://surveys:8082/api
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------- statistics (8084, no database) ----------------
+  statistics:
+    build: ./statistics
+    container_name: eusurvey-statistics
+    environment:
+      RESPONSES_BASE_URL: http://responses:8083/api
+    ports:
+      - "8084:8084"
+    depends_on:
+      - responses
+
+  # ---------------- notifications (8086, no database, SMTP) ----------------
+  notifications:
+    build: ./notifications
+    container_name: eusurvey-notifications
+    environment:
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+    ports:
+      - "8086:8086"
+
+  # ---------------- invitations (8085) ----------------
+  invitations:
+    build: ./invitations
+    container_name: eusurvey-invitations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/invitationsSurveyDB
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: apertura15
+      SURVEYS_BASE_URL: http://surveys:8082/api
+      NOTIFICATIONS_BASE_URL: http://notifications:8086/api
+      FRONTEND_BASE_URL: http://localhost:4200
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------- gateway (8080, single entry point) ----------------
+  gateway:
+    build: ./gateway
+    container_name: eusurvey-gateway
+    environment:
+      SERVICES_USERS_URL: http://users:8081
+      SERVICES_SURVEYS_URL: http://surveys:8082
+      SERVICES_RESPONSES_URL: http://responses:8083
+      SERVICES_STATISTICS_URL: http://statistics:8084
+      SERVICES_INVITATIONS_URL: http://invitations:8085
+    ports:
+      - "8080:8080"
+    depends_on:
+      - users
+      - surveys
+      - responses
+      - statistics
+      - invitations
+
+volumes:
+  postgres-data:

@@ -1,0 +1,12 @@
+/* ============================================================
+   EUSurvey · Survey statistics
+   .page-title, .card, .stat-card/.stat-num/.stat-label, el
+   gráfico (.chart/.chart-bar/...) y .rate-track/.rate-fill ya
+   los resuelve el sistema global (con el remate amarillo de
+   firma en cada barra). Solo se mantiene aquí el acento lateral
+   que distingue cada bloque de pregunta.
+   ============================================================ */
+
+.q-card {
+  border-left: 4px solid var(--eu-blue-700);
+}

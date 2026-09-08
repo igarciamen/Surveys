@@ -1,0 +1,22 @@
+/* ============================================================
+   EUSurvey · Create / edit survey
+   .page-title, .section-title, .card, .btn-primary y
+   .btn-outline-primary ya los resuelve el sistema global.
+   Aquí solo lo específico del constructor de preguntas.
+   ============================================================ */
+
+/* Cada pregunta se distingue con un filete lateral azul */
+.question-card {
+  border-left: 4px solid var(--eu-blue-700);
+}
+
+/* Caja de opciones (choices/dropdown/rating) con fondo diferenciado */
+.options-box {
+  background: var(--paper);
+  border-radius: var(--radius-md);
+  padding: 0.9rem;
+}
+
+.form-label {
+  font-size: 0.82rem;
+}

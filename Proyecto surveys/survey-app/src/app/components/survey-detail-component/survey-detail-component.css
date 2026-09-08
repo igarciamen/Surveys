@@ -1,0 +1,10 @@
+/* ============================================================
+   EUSurvey · Survey detail (read-only view)
+   .page-title y .btn-primary ya los resuelve el sistema global.
+   Unificamos aquí el acento lateral de .question-card con el que
+   ya usan las pantallas de creación y respuesta.
+   ============================================================ */
+
+.question-card {
+  border-left: 4px solid var(--eu-blue-700);
+}

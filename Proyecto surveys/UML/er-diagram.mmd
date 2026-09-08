@@ -1,0 +1,81 @@
+erDiagram
+    USERS ||--o{ USER_ROLES : has
+    ROLES ||--o{ USER_ROLES : in
+    USERS {
+        bigint id PK
+        varchar username UK
+        varchar email UK
+        varchar password
+    }
+    ROLES {
+        int id PK
+        varchar name UK
+    }
+    USER_ROLES {
+        bigint user_id FK
+        bigint role_id FK
+    }
+
+    SURVEYS ||--o{ SURVEY_QUESTIONS : contains
+    SURVEY_QUESTIONS ||--o{ SURVEY_QUESTION_OPTIONS : contains
+    SURVEYS {
+        bigint id PK
+        bigint owner_user_id
+        varchar title
+        varchar description
+        varchar status
+        varchar access
+        varchar access_password
+        timestamp published_at
+        timestamp closes_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    SURVEY_QUESTIONS {
+        bigint id PK
+        bigint survey_id FK
+        varchar type
+        varchar label
+        varchar help_text
+        boolean required
+        int position
+    }
+    SURVEY_QUESTION_OPTIONS {
+        bigint id PK
+        bigint question_id FK
+        varchar label
+        varchar value
+        int position
+    }
+
+    SURVEY_RESPONSES ||--o{ ANSWERS : contains
+    ANSWERS ||--o{ ANSWER_SELECTED_OPTIONS : contains
+    SURVEY_RESPONSES {
+        bigint id PK
+        bigint survey_id
+        bigint respondent_user_id
+        timestamp submitted_at
+    }
+    ANSWERS {
+        bigint id PK
+        bigint response_id FK
+        bigint question_id
+        varchar text_value
+    }
+    ANSWER_SELECTED_OPTIONS {
+        bigint answer_id FK
+        bigint option_id
+    }
+
+    INVITATIONS {
+        bigint id PK
+        bigint survey_id
+        varchar survey_title
+        bigint owner_user_id
+        varchar email
+        varchar token UK
+        varchar status
+        timestamp created_at
+        timestamp responded_at
+        bigint respondent_user_id
+    }

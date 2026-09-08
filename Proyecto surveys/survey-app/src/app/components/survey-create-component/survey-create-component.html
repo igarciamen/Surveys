@@ -1,0 +1,109 @@
+<div class="container py-4" style="max-width: 820px">
+  <a routerLink="/surveys/manage" class="text-decoration-none small">&larr; Back to my surveys</a>
+  <h2 class="page-title mt-2">{{ isEdit ? 'Edit survey' : 'New survey' }}</h2>
+
+  @if (loading) {
+    <div class="text-center py-5"><span class="spinner-border" role="status"></span></div>
+  } @else {
+    @if (errorMessage) { <div class="alert alert-danger">{{ errorMessage }}</div> }
+
+    <!-- General info -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-control" [(ngModel)]="survey.title" name="title" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" rows="2" [(ngModel)]="survey.description" name="description"></textarea>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Access</label>
+            <select class="form-select" [(ngModel)]="survey.access" name="access">
+              @for (a of accessTypes; track a.value) { <option [ngValue]="a.value">{{ a.label }}</option> }
+            </select>
+          </div>
+          @if (survey.access === 'PASSWORD') {
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              <input type="text" class="form-control" [(ngModel)]="survey.accessPassword" name="accessPassword" />
+            </div>
+          }
+
+          <div class="col-md-6">
+  <label class="form-label">Closing date (optional)</label>
+  <input type="datetime-local" class="form-control" [(ngModel)]="closesAtLocal" name="closesAt" />
+  <div class="form-text">Leave empty for no automatic closing.</div>
+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <h5 class="section-title">Questions</h5>
+    @if (survey.questions.length === 0) {
+      <div class="alert alert-light border text-center">No questions yet. Add the first one below.</div>
+    }
+
+    @for (q of survey.questions; track q; let i = $index) {
+      <div class="card question-card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-light text-dark">Question {{ i + 1 }}</span>
+            <button class="btn btn-sm btn-outline-danger" (click)="removeQuestion(i)">Remove</button>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label">Type</label>
+              <select class="form-select" [(ngModel)]="q.type" [name]="'type' + i" (ngModelChange)="onTypeChange(q)">
+                @for (t of questionTypes; track t.value) { <option [ngValue]="t.value">{{ t.label }}</option> }
+              </select>
+            </div>
+            <div class="col-md-7">
+              <label class="form-label">Label</label>
+              <input type="text" class="form-control" [(ngModel)]="q.label" [name]="'label' + i" />
+            </div>
+          </div>
+
+          <div class="mb-2 mt-2">
+            <label class="form-label">Help text (optional)</label>
+            <input type="text" class="form-control" [(ngModel)]="q.helpText" [name]="'help' + i" />
+          </div>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="q.required" [name]="'req' + i" [id]="'req' + i" />
+            <label class="form-check-label" [for]="'req' + i">Required</label>
+          </div>
+
+          @if (needsOptions(q.type)) {
+            <div class="options-box">
+              <label class="form-label">Options</label>
+              @for (o of q.options; track o; let j = $index) {
+                <div class="input-group mb-2">
+                  <input type="text" class="form-control" placeholder="Visible label" [(ngModel)]="o.label" [name]="'optl' + i + '_' + j" />
+                  <input type="text" class="form-control" placeholder="Value (optional)" [(ngModel)]="o.value" [name]="'optv' + i + '_' + j" />
+                  <button class="btn btn-outline-danger" (click)="removeOption(q, j)">&times;</button>
+                </div>
+              }
+              <button class="btn btn-sm btn-outline-secondary" (click)="addOption(q)">+ Add option</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <button class="btn btn-outline-primary mb-4" (click)="addQuestion()">+ Add question</button>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+        @if (saving) { <span class="spinner-border spinner-border-sm"></span> Saving... }
+        @else { {{ isEdit ? 'Save changes' : 'Create survey' }} }
+      </button>
+      <a routerLink="/surveys/manage" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+    <p class="form-text mt-2">The survey is saved as a draft. Publish it from "My surveys" when it is ready.</p>
+  }
+</div>

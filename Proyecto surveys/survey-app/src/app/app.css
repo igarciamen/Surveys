@@ -1,0 +1,162 @@
+/* ============================================================
+   EUSurvey · root navbar styling
+   Hereda los tokens de color de :root (styles.css): azul
+   institucional + amarillo bandera como acento puntual. Aquí solo
+   lo propio del navbar: texto translúcido sobre el degradado y
+   el motivo de firma (el filete/subrayado amarillo) aplicado a
+   marca, enlaces y estado activo.
+   Scoped al componente App (el navbar vive en app.html).
+   ============================================================ */
+
+:host {
+  --nav-text:        rgba(255, 255, 255, 0.82);
+  --nav-text-strong: #ffffff;
+}
+
+/* ---- Barra ---- */
+.navbar {
+  background: linear-gradient(180deg, var(--eu-blue-700) 0%, var(--eu-blue-900) 100%);
+  border-bottom: 3px solid var(--eu-yellow);
+  box-shadow: 0 2px 20px rgba(0, 17, 68, 0.22);
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+/* ---- Marca: tipografía de exposición, con el punto amarillo como
+   único acento decorativo (nada de logos genéricos) ---- */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  color: var(--nav-text-strong);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.01em;
+}
+.navbar-brand::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--eu-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 214, 23, 0.25);
+}
+.navbar-brand:hover,
+.navbar-brand:focus {
+  color: var(--nav-text-strong);
+}
+
+/* ---- Enlaces: subrayado amarillo animado (la firma del sistema) +
+   una pastilla translúcida sutil en el estado activo ---- */
+.navbar .nav-link {
+  position: relative;
+  color: var(--nav-text);
+  font-weight: 500;
+  font-size: 0.94rem;
+  border-radius: var(--radius-sm);
+  padding-inline: 0.9rem;
+  padding-block: 0.35rem;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.navbar .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0.1rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--eu-yellow);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: var(--nav-text-strong);
+}
+.navbar .nav-link.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+.navbar .nav-link:hover::after,
+.navbar .nav-link.active::after {
+  transform: scaleX(1);
+}
+
+/* ---- Toggler móvil (icono blanco sobre azul) ---- */
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 214, 23, 0.4);
+}
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.85)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* ---- Menú desplegable de usuario ---- */
+.navbar .dropdown-toggle {
+  font-weight: 600;
+}
+.navbar .dropdown-menu {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.35rem;
+  margin-top: 0.5rem;
+  min-width: 11rem;
+  box-shadow: var(--shadow-lg);
+}
+.navbar .dropdown-item {
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.navbar .dropdown-item:hover {
+  background: var(--eu-blue-50);
+  color: var(--eu-blue-700);
+}
+/* Logout siempre al final → matiz rojo sutil */
+.navbar .dropdown-menu li:last-child .dropdown-item:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* ---- Aire para el contenido bajo la barra ---- */
+.container-fluid:has(> router-outlet) {
+  padding-top: 1.5rem;
+}
+
+/* ---- Accesibilidad: foco de teclado visible ---- */
+.navbar a:focus-visible {
+  outline: 2px solid var(--eu-yellow);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Menú apilado en móvil ---- */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    padding-top: 0.6rem;
+  }
+  .navbar .nav-link {
+    padding-block: 0.55rem;
+  }
+  .navbar .nav-link::after {
+    display: none; /* el subrayado no queda bien cuando los enlaces se apilan */
+  }
+  .navbar .nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ---- Respeta prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .navbar .nav-link,
+  .navbar .nav-link::after,
+  .navbar .dropdown-item {
+    transition: none;
+  }
+}

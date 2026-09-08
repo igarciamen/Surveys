@@ -1,0 +1,65 @@
+flowchart TB
+    User(["Usuario"])
+
+    subgraph Client["Frontend"]
+        FE["<b>Angular SPA</b><br/>[Container: TypeScript]<br/>ng serve :4200"]
+    end
+
+    subgraph GW["Gateway"]
+        GATE["<b>gateway</b> :8080<br/>Spring Cloud Gateway (WebFlux)<br/>punto de entrada único"]
+    end
+
+    subgraph Services["Microservicios (Spring Boot · Java 21)"]
+        USERS["<b>users</b> :8081<br/>Auth, JWT, roles"]
+        SURV["<b>surveys</b> :8082<br/>Encuestas, preguntas, opciones"]
+        RESP["<b>responses</b> :8083<br/>Respuestas, resultados agregados"]
+        STAT["<b>statistics</b> :8084<br/>Estadísticas (sin BD)"]
+        INV["<b>invitations</b> :8085<br/>Invitaciones, tokens"]
+        NOTIF["<b>notifications</b> :8086<br/>Envío de email (SMTP, sin BD)"]
+    end
+
+    subgraph Data["PostgreSQL 16 :5433 (contenedor único)"]
+        DB1[("usersurveyDB")]
+        DB2[("surveysDB")]
+        DB3[("responsesDB")]
+        DB5[("invitationsSurveyDB")]
+    end
+
+    User -->|HTTPS| FE
+    FE -->|"login / encuestas / respuestas<br/>estadísticas / invitaciones<br/>[REST/JSON + Bearer JWT]"| GATE
+
+    GATE -->|"/api/auth/**, /api/user/**"| USERS
+    GATE -->|"/api/surveys/**"| SURV
+    GATE -->|"/api/responses/**"| RESP
+    GATE -->|"/api/statistics/**"| STAT
+    GATE -->|"/api/invitations/**"| INV
+
+    USERS -->|JDBC| DB1
+    SURV -->|JDBC| DB2
+    RESP -->|JDBC| DB3
+    INV -->|JDBC| DB5
+
+    SURV -->|"GET /api/user/{ownerUserId}<br/>[REST/JSON · enriquece 'owner']"| USERS
+    RESP -->|"GET /api/surveys/{id}<br/>POST /api/surveys/{id}/verify-password<br/>[REST/JSON]"| SURV
+    STAT -->|"GET /api/responses/survey/{id}/results<br/>GET /api/responses/survey/{id}/timestamps<br/>[REST/JSON]"| RESP
+    INV -->|"GET /api/surveys/{id}/manage<br/>[REST/JSON · reenvía Bearer]"| SURV
+    INV -->|"POST /api/notifications/invitation<br/>[REST/JSON]"| NOTIF
+
+    %% ---- Contenedores (subgraphs): fondo oscuro neutro, nada de naranja ----
+    style Client fill:#0f172a,stroke:#38bdf8,stroke-width:1px,color:#e2e8f0
+    style GW fill:#0f172a,stroke:#a78bfa,stroke-width:1px,color:#e2e8f0
+    style Services fill:#111827,stroke:#4b5563,stroke-width:1px,color:#e5e7eb
+    style Data fill:#0f172a,stroke:#f59e0b,stroke-width:1px,color:#e2e8f0
+
+    %% ---- Nodos: colores pastel con texto oscuro, alto contraste ----
+    classDef fe fill:#bae6fd,stroke:#0284c7,stroke-width:2px,color:#0c2233;
+    classDef gw fill:#ddd6fe,stroke:#7c3aed,stroke-width:2px,color:#2e1065;
+    classDef svc fill:#bbf7d0,stroke:#16a34a,stroke-width:2px,color:#052e16;
+    classDef db fill:#fde68a,stroke:#b45309,stroke-width:2px,color:#451a03;
+    classDef userNode fill:#c7d2fe,stroke:#4f46e5,stroke-width:2px,color:#1e1b4b;
+
+    class FE fe;
+    class GATE gw;
+    class USERS,SURV,RESP,STAT,INV,NOTIF svc;
+    class DB1,DB2,DB3,DB5 db;
+    class User userNode;

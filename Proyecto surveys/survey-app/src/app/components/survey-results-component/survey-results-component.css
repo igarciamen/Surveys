@@ -1,0 +1,14 @@
+/* ============================================================
+   EUSurvey · Survey results
+   .page-title, .result-card, .bar-track/.bar-fill ya los resuelve
+   el sistema global. Aquí solo lo específico de esta vista:
+   el contraste yes/no de las preguntas booleanas y la lista de
+   respuestas de texto libre de muestra.
+   ============================================================ */
+
+.stat { font-size: 1.6rem; font-weight: 700; font-family: var(--font-display); }
+.stat.yes { color: var(--success); }
+.stat.no  { color: var(--danger); }
+
+.samples { margin: 0; padding-left: 1.1rem; color: var(--body); }
+.samples li { margin-bottom: 0.3rem; }
