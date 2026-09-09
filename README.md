@@ -1,4 +1,4 @@
-# EUSurvey — Plataforma de encuestas con microservicios
+# Survey — Plataforma de encuestas con microservicios
 
 Plataforma de encuestas (survey builder) construida como un sistema de
 **microservicios independientes**. Seis servicios backend en Spring Boot 4
