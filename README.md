@@ -1,4 +1,4 @@
-# Public surveys: a microservices-based Survey Platform
+# Public surveys: a survey platform built on microservices. 
 
 A survey-building platform built as a system of **independent
 microservices**. Six backend services in Spring Boot 4 (five of them
