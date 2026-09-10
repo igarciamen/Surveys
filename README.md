@@ -1,4 +1,4 @@
-# Survey — Microservices-based Survey Platform
+# Public surveys: a microservices-based Survey Platform
 
 A survey-building platform built as a system of **independent
 microservices**. Six backend services in Spring Boot 4 (five of them
@@ -13,22 +13,6 @@ survey closing.
 ## Demo
 
 https://github.com/user-attachments/assets/16aa058d-f6b3-414d-9aab-1c85d778fbd2
-
-## Table of Contents
-
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Repository Structure](#repository-structure)
-- [The Microservices](#the-microservices)
-- [Data Model](#data-model)
-- [Security (JWT + Roles)](#security-jwt--roles)
-- [Angular Frontend](#angular-frontend)
-- [Running with Docker](#running-with-docker)
-- [Running Locally (IntelliJ)](#running-locally-intellij)
-- [API — Endpoint Summary](#api--endpoint-summary)
-- [Diagrams](#diagrams)
-
----
 
 ## Architecture
 
@@ -189,7 +173,7 @@ Internal email-sending service over SMTP. Exposes
 
 ## Data Model
 
-Main entities (see diagrams in [`UML.md`](./UML.md)):
+Main entities:
 
 - **User** ⟷ **Role** (`ManyToMany`), `Role.name` is the **ERole** enum.
 - **Survey** *1—N* **Question** *1—N* **QuestionOption** (real FKs within `surveysDB`).
@@ -262,19 +246,6 @@ PostgreSQL is *healthy*, `users`, `surveys`, `responses`, `statistics`,
 `invitations` start up, and finally `gateway` (which depends on all of the
 above).
 
-Quick check (Swagger for each service):
-
-```
-http://localhost:8081/swagger-ui.html   # users
-http://localhost:8082/swagger-ui.html   # surveys
-http://localhost:8085/swagger-ui.html   # invitations
-```
-
-All application traffic can go through the gateway:
-
-```
-http://localhost:8080/api/...
-```
 
 Frontend (outside Docker):
 
@@ -367,27 +338,3 @@ DELETE /api/invitations/{invitationId}                             (owner/ADMIN)
 ```
 POST /api/notifications/invitation
 ```
-
----
-
-## Diagrams
-
-The UML diagrams (domain classes, container architecture, authentication
-and response-submission flows, and entity-relationship model) are in
-[`UML.md`](./UML.md), in Mermaid format. They render on GitHub/GitLab, in
-VS Code with the Mermaid extension, or at https://mermaid.live.
-
-They are also available as standalone `.mmd` files, ready to import or
-paste directly into a Mermaid viewer:
-
-- [`class-diagram.mmd`](./class-diagram.mmd) — domain classes (JPA)
-- [`architecture-c4.mmd`](./architecture-c4.mmd) — containers (C4 level 2)
-- [`auth-sequence.mmd`](./auth-sequence.mmd) — authentication flow (JWT)
-- [`checkout-sequence.mmd`](./checkout-sequence.mmd) — response-submission flow
-- [`er-diagram.mmd`](./er-diagram.mmd) — entity-relationship model
-
----
-
-## License
-
-Academic project. Educational use.
