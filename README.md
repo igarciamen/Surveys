@@ -92,14 +92,6 @@ eusurvey/
     └── src/app/...
 ```
 
-Base package for each service: `com.igarciamen.<service>`, following the
-usual layered organization: `model`, `repository`, `payloads` (request/
-response DTOs), `service`, `controller`, `config`, and `client` (in
-services that call others: `surveys`→`users`, `responses`→`surveys`,
-`statistics`→`responses`, `invitations`→`surveys`/`notifications`).
-
----
-
 ## The Microservices
 
 ### gateway (8080)
