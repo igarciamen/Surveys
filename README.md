@@ -1,100 +1,98 @@
-# Survey — Plataforma de encuestas con microservicios
+# Survey — Microservices-based Survey Platform
 
-Plataforma de encuestas (survey builder) construida como un sistema de
-**microservicios independientes**. Seis servicios backend en Spring Boot 4
-(cinco de ellos accesibles a través de un **gateway** propio, cuatro con su
-propia base de datos PostgreSQL) y un frontend Angular. Incluye
-autenticación con JWT y roles, creación de encuestas con distintos tipos de
-pregunta, control de acceso (abierta / con contraseña / restringida a
-usuarios registrados), envío y agregación de respuestas, estadísticas, e
-invitaciones por email con cierre automático programado de encuestas.
+A survey-building platform built as a system of **independent
+microservices**. Six backend services in Spring Boot 4 (five of them
+accessible through a custom **gateway**, four with their own PostgreSQL
+database) and an Angular frontend. It includes JWT authentication with
+roles, survey creation with different question types, access control (open
+/ password-protected / restricted to registered users), response submission
+and aggregation, statistics, and email invitations with scheduled automatic
+survey closing.
 
 ---
 ## Demo
 
-
 https://github.com/user-attachments/assets/16aa058d-f6b3-414d-9aab-1c85d778fbd2
 
+## Table of Contents
 
-## Índice
-
-- [Arquitectura](#arquitectura)
-- [Stack tecnológico](#stack-tecnológico)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Los microservicios](#los-microservicios)
-- [Modelo de datos](#modelo-de-datos)
-- [Seguridad (JWT + roles)](#seguridad-jwt--roles)
-- [Frontend Angular](#frontend-angular)
-- [Puesta en marcha con Docker](#puesta-en-marcha-con-docker)
-- [Ejecución en local (IntelliJ)](#ejecución-en-local-intellij)
-- [API — resumen de endpoints](#api--resumen-de-endpoints)
-- [Diagramas](#diagramas)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Repository Structure](#repository-structure)
+- [The Microservices](#the-microservices)
+- [Data Model](#data-model)
+- [Security (JWT + Roles)](#security-jwt--roles)
+- [Angular Frontend](#angular-frontend)
+- [Running with Docker](#running-with-docker)
+- [Running Locally (IntelliJ)](#running-locally-intellij)
+- [API — Endpoint Summary](#api--endpoint-summary)
+- [Diagrams](#diagrams)
 
 ---
 
-## Arquitectura
+## Architecture
 
-Cada microservicio es autónomo: tiene su propio puerto, su base de datos (si
-la necesita) y su ciclo de vida. No comparten tablas. Todo el tráfico entra
-por un único **gateway** (Spring Cloud Gateway, sabor reactivo WebFlux) que
-enruta cada prefijo `/api/<área>/**` al microservicio correspondiente sin
-reescribir la ruta, y reenvía la cabecera `Authorization` tal cual. Cuando un
-servicio necesita datos de otro (por ejemplo, `surveys` necesita el nombre
-del propietario, o `responses` necesita releer el esquema de preguntas), hace
-una **llamada HTTP reenviando el token JWT** del usuario, en lugar de acceder
-a la base de datos ajena.
+Each microservice is autonomous: it has its own port, its own database (if
+it needs one), and its own lifecycle. They don't share tables. All traffic
+enters through a single **gateway** (Spring Cloud Gateway, WebFlux reactive
+flavor) that routes each `/api/<area>/**` prefix to the corresponding
+microservice without rewriting the path, forwarding the `Authorization`
+header as-is. When one service needs data from another (for example,
+`surveys` needs the owner's name, or `responses` needs to re-read the
+question schema), it makes an **HTTP call forwarding the user's JWT token**,
+rather than accessing the other service's database directly.
 
-| Servicio        | Puerto | Base de datos          | Responsabilidad                                        |
+| Service         | Port | Database                | Responsibility                                          |
 |------------------|:------:|-------------------------|---------------------------------------------------------|
-| `gateway`        | 8080   | —                        | Punto de entrada único, enrutado estático              |
-| `users`          | 8081   | `usersurveyDB`           | Registro, login, emisión de JWT, roles                 |
-| `surveys`        | 8082   | `surveysDB`              | Encuestas, preguntas, opciones, publicación/cierre      |
-| `responses`      | 8083   | `responsesDB`            | Envío de respuestas, validación, resultados agregados   |
-| `statistics`     | 8084   | — (consume `responses`)  | Estadísticas y series temporales de una encuesta        |
-| `invitations`    | 8085   | `invitationsSurveyDB`     | Invitaciones por email, tokens de acceso                |
-| `notifications`  | 8086   | — (SMTP)                 | Envío de correos                                        |
-| *frontend*       | 4200   | —                        | Aplicación Angular (fuera de Docker por defecto)        |
+| `gateway`        | 8080   | —                        | Single entry point, static routing                      |
+| `users`          | 8081   | `usersurveyDB`           | Registration, login, JWT issuance, roles                |
+| `surveys`        | 8082   | `surveysDB`              | Surveys, questions, options, publish/close               |
+| `responses`      | 8083   | `responsesDB`            | Response submission, validation, aggregated results      |
+| `statistics`     | 8084   | — (consumes `responses`) | Statistics and time series for a survey                  |
+| `invitations`    | 8085   | `invitationsSurveyDB`    | Email invitations, access tokens                         |
+| `notifications`  | 8086   | — (SMTP)                 | Email sending                                             |
+| *frontend*       | 4200   | —                        | Angular application (outside Docker by default)          |
 
-Una **única instancia de PostgreSQL** aloja las cuatro bases de datos con
-persistencia (creadas por `init-databases.sql` la primera vez que arranca).
+A **single PostgreSQL instance** hosts the four persistent databases
+(created by `init-databases.sql` on first startup).
 
 ---
 
-## Stack tecnológico
+## Tech Stack
 
 **Backend**
 - Java 21
 - Spring Boot 4 (Web MVC, Data JPA, Validation, Security)
-- Spring Cloud Gateway (WebFlux) para el `gateway`
-- Spring Security como **OAuth2 Resource Server** (validación de JWT, HMAC-SHA256)
-- `io.jsonwebtoken` (jjwt) para la emisión del token en `users`
+- Spring Cloud Gateway (WebFlux) for the `gateway`
+- Spring Security as an **OAuth2 Resource Server** (JWT validation, HMAC-SHA256)
+- `io.jsonwebtoken` (jjwt) for token issuance in `users`
 - PostgreSQL 16
 - springdoc-openapi (Swagger UI)
-- Apache HttpClient 5 (`RestTemplate` entre servicios, con interceptor que reenvía el JWT)
-- Spring Scheduling (`SurveyAutoCloseTask`) para el cierre automático de encuestas
-- Spring Mail (SMTP) en `notifications`
+- Apache HttpClient 5 (`RestTemplate` between services, with an interceptor that forwards the JWT)
+- Spring Scheduling (`SurveyAutoCloseTask`) for automatic survey closing
+- Spring Mail (SMTP) in `notifications`
 
 **Frontend**
-- Angular (componentes *standalone*)
-- Interceptor HTTP para adjuntar el JWT (`auth-interceptor`) y `AuthGuard` por rol
+- Angular (standalone components)
+- HTTP interceptor to attach the JWT (`auth-interceptor`) and role-based `AuthGuard`
 - RxJS
 
-**Infraestructura**
-- Docker Compose (Postgres + 6 microservicios; el frontend se ejecuta aparte con `ng serve`)
+**Infrastructure**
+- Docker Compose (Postgres + 6 microservices; the frontend runs separately with `ng serve`)
 
 ---
 
-## Estructura del repositorio
+## Repository Structure
 
 ```
 eusurvey/
-├── docker-compose.yml         # Postgres + 6 microservicios (gateway incluido)
-├── init-databases.sql         # crea las 4 bases de datos con persistencia
+├── docker-compose.yml         # Postgres + 6 microservices (gateway included)
+├── init-databases.sql         # creates the 4 persistent databases
 │
-├── gateway/                   # Spring Cloud Gateway (WebFlux), sin base de datos
+├── gateway/                   # Spring Cloud Gateway (WebFlux), no database
 │   ├── pom.xml
 │   └── src/main/java/com/igarciamen/gateway/...
-├── users/                     # cada microservicio: pom.xml + src/
+├── users/                     # each microservice: pom.xml + src/
 │   └── src/main/java/com/igarciamen/users/...
 ├── surveys/
 │   └── src/main/java/com/igarciamen/surveys/...
@@ -107,164 +105,164 @@ eusurvey/
 ├── notifications/
 │   └── src/main/java/com/igarciamen/notifications/...
 │
-└── frontend/                  # Angular (se ejecuta con ng serve)
+└── frontend/                  # Angular (runs with ng serve)
     └── src/app/...
 ```
 
-Paquete base de cada servicio: `com.igarciamen.<servicio>`, con la
-organización habitual por capas: `model`, `repository`, `payloads` (DTOs de
-petición/respuesta), `service`, `controller`, `config`, y `client` (en los
-servicios que llaman a otros: `surveys`→`users`, `responses`→`surveys`,
+Base package for each service: `com.igarciamen.<service>`, following the
+usual layered organization: `model`, `repository`, `payloads` (request/
+response DTOs), `service`, `controller`, `config`, and `client` (in
+services that call others: `surveys`→`users`, `responses`→`surveys`,
 `statistics`→`responses`, `invitations`→`surveys`/`notifications`).
 
 ---
 
-## Los microservicios
+## The Microservices
 
 ### gateway (8080)
-Único punto de entrada. Tabla de rutas estática (`GatewayConfig`): cada
-prefijo `/api/<área>/**` se reenvía sin cambios al microservicio propietario
-(`/api/auth/**` y `/api/user(s)/**` → `users`; `/api/surveys/**` → `surveys`;
-`/api/responses/**` → `responses`; `/api/statistics/**` → `statistics`;
-`/api/invitations/**` → `invitations`). No valida el JWT él mismo; se limita a
-reenviar la cabecera `Authorization`, y es cada microservicio el que la valida
-como *Resource Server*.
+The single entry point. Static route table (`GatewayConfig`): each
+`/api/<area>/**` prefix is forwarded unchanged to the owning microservice
+(`/api/auth/**` and `/api/user(s)/**` → `users`; `/api/surveys/**` →
+`surveys`; `/api/responses/**` → `responses`; `/api/statistics/**` →
+`statistics`; `/api/invitations/**` → `invitations`). It does not validate
+the JWT itself; it simply forwards the `Authorization` header, and each
+microservice validates it as a *Resource Server*.
 
 ### users (8081)
-Gestiona la identidad. Registro (`/api/auth/signup`) y login
-(`/api/auth/login`), que devuelve un **JWT firmado con HMAC-SHA256** con los
-claims `userId` y `roles`. Expone también los datos del usuario autenticado
-(`/api/user/me`) y de un usuario por id (`/api/user/{id}`, usado por otros
-servicios para enriquecer sus respuestas). Roles disponibles: `ROLE_USER`,
-`ROLE_DESIGNER`, `ROLE_ADMIN`. Semilla un usuario administrador al arrancar
-(`DataLoader`, configurable por `app.admin.username` / `app.admin.password`).
+Manages identity. Registration (`/api/auth/signup`) and login
+(`/api/auth/login`), which returns a **JWT signed with HMAC-SHA256**
+carrying the `userId` and `roles` claims. It also exposes the authenticated
+user's data (`/api/user/me`) and a user by id (`/api/user/{id}`, used by
+other services to enrich their responses). Available roles: `ROLE_USER`,
+`ROLE_DESIGNER`, `ROLE_ADMIN`. Seeds an admin user on startup
+(`DataLoader`, configurable via `app.admin.username` / `app.admin.password`).
 
 ### surveys (8082)
-CRUD de encuestas con su árbol de preguntas y opciones
-(`Survey 1—N Question 1—N QuestionOption`). Ciclo de vida controlado por
-`SurveyStatus` (`DRAFT → PUBLISHED → CLOSED`, transición unidireccional): solo
-se puede editar en `DRAFT`, y publicar exige al menos una pregunta. Controla
-el acceso con `SurveyAccess` (`OPEN` / `PASSWORD` / `RESTRICTED`); la
-contraseña se guarda en texto y **nunca** se serializa de vuelta al cliente
-(`@JsonProperty(WRITE_ONLY)`). Expone un endpoint interno de gestión
-(`/{id}/manage`) que exige ser el propietario o admin, usado por
-`invitations`. Enriquece cada encuesta con los datos del propietario llamando
-a `users`. Incluye una tarea programada (`SurveyAutoCloseTask` +
-`SchedulingConfig`) que cierra automáticamente las encuestas cuya
-`closesAt` ya pasó.
+CRUD for surveys along with their question/option tree
+(`Survey 1—N Question 1—N QuestionOption`). Lifecycle controlled by
+`SurveyStatus` (`DRAFT → PUBLISHED → CLOSED`, one-way transition): editing
+is only allowed in `DRAFT`, and publishing requires at least one question.
+Access is controlled via `SurveyAccess` (`OPEN` / `PASSWORD` /
+`RESTRICTED`); the password is stored as plain text and **never** serialized
+back to the client (`@JsonProperty(WRITE_ONLY)`). Exposes an internal
+management endpoint (`/{id}/manage`) that requires being the owner or an
+admin, used by `invitations`. Enriches each survey with owner data by
+calling `users`. Includes a scheduled task (`SurveyAutoCloseTask` +
+`SchedulingConfig`) that automatically closes surveys whose `closesAt` has
+already passed.
 
 ### responses (8083)
-Recibe el envío de una respuesta (`POST /api/responses/survey/{id}`). Antes de
-aceptarla: vuelve a pedir el esquema publicado a `surveys` (no confía en lo
-que envía el cliente), aplica las reglas del modo de acceso (`RESTRICTED`
-exige login; `PASSWORD` exige login + contraseña correcta verificada contra
-`surveys`; `OPEN` admite anónimos), impide una segunda respuesta del mismo
-usuario registrado a la misma encuesta, y valida cada respuesta contra el tipo
-de pregunta (obligatoriedad, opciones válidas, etc.). También calcula
-resultados agregados por pregunta (`/results`), las marcas de tiempo de cada
-envío (`/timestamps`, usado por `statistics`) y permite exportar las
-respuestas en **CSV** y **Excel** (owner o admin).
+Receives a response submission (`POST /api/responses/survey/{id}`). Before
+accepting it: it re-fetches the published schema from `surveys` (it doesn't
+trust what the client sends), applies the access-mode rules (`RESTRICTED`
+requires login; `PASSWORD` requires login + a correct password verified
+against `surveys`; `OPEN` allows anonymous submissions), prevents a second
+submission from the same registered user for the same survey, and validates
+each answer against the question type (required fields, valid options,
+etc.). It also computes aggregated results per question (`/results`), the
+submission timestamps for each entry (`/timestamps`, used by `statistics`),
+and allows exporting responses as **CSV** and **Excel** (owner or admin).
 
-### statistics (8084, sin base de datos)
-Servicio de solo lectura y agregación: pide a `responses` los resultados y las
-marcas de tiempo de una encuesta y construye una vista con el total de
-respuestas, primera/última respuesta, una serie temporal por día, y un
-*highlight* por pregunta (opción más elegida, media, sí/no, o número de
-respuestas de texto libre).
+### statistics (8084, no database)
+A read-only, aggregation-only service: it asks `responses` for a survey's
+results and timestamps and builds a view with the total number of
+responses, the first/last response, a daily time series, and a highlight
+per question (most-chosen option, average, yes/no, or number of free-text
+responses).
 
 ### invitations (8085)
-Invita por email a una encuesta. Al crear invitaciones valida que quien las
-pide sea el propietario/admin de la encuesta (`GET /{id}/manage` en
-`surveys`), limpia y deduplica los correos, genera un token único por
-invitación, y pide a `notifications` el envío del email con el enlace
-(`{frontend}/surveys/{id}/answer?invite={token}`); si el email falla, la
-invitación igualmente queda creada (best-effort). El destinatario puede
-validar su token (`GET /token/{token}`) y marcarlo como respondido
+Invites people to a survey by email. When creating invitations, it verifies
+that the requester is the owner/admin of the survey (`GET /{id}/manage` on
+`surveys`), cleans and deduplicates the email addresses, generates a unique
+token per invitation, and asks `notifications` to send the email with the
+link (`{frontend}/surveys/{id}/answer?invite={token}`); if the email fails,
+the invitation is still created (best-effort). The recipient can validate
+their token (`GET /token/{token}`) and mark it as answered
 (`POST /token/{token}/accept`).
 
-### notifications (8086, sin base de datos)
-Servicio interno de envío de correo por SMTP. Expone
-`POST /api/notifications/invitation`, pensado para ser llamado solo por
+### notifications (8086, no database)
+Internal email-sending service over SMTP. Exposes
+`POST /api/notifications/invitation`, intended to be called only by
 `invitations`.
 
 ---
 
-## Modelo de datos
+## Data Model
 
-Entidades principales (ver diagramas en [`UML.md`](./UML.md)):
+Main entities (see diagrams in [`UML.md`](./UML.md)):
 
-- **User** ⟷ **Role** (`ManyToMany`), `Role.name` es el enum **ERole**.
-- **Survey** *1—N* **Question** *1—N* **QuestionOption** (FK reales dentro de `surveysDB`).
-- **SurveyResponse** *1—N* **Answer** (FK reales dentro de `responsesDB`); cada
-  `Answer` guarda un valor simple (`textValue`) o una lista de ids de opciones
-  elegidas (`selectedOptionIds`), según el tipo de pregunta.
-- **Invitation** (tabla única dentro de `invitationsSurveyDB`, sin hijos).
+- **User** ⟷ **Role** (`ManyToMany`), `Role.name` is the **ERole** enum.
+- **Survey** *1—N* **Question** *1—N* **QuestionOption** (real FKs within `surveysDB`).
+- **SurveyResponse** *1—N* **Answer** (real FKs within `responsesDB`); each
+  `Answer` stores either a simple value (`textValue`) or a list of chosen
+  option ids (`selectedOptionIds`), depending on the question type.
+- **Invitation** (a single table within `invitationsSurveyDB`, with no children).
 
-Como cada servicio tiene su base de datos, **no hay claves foráneas entre
-servicios**: las referencias cruzadas (por ejemplo `Survey.ownerUserId`,
-`SurveyResponse.surveyId`, `Answer.questionId`, `Invitation.surveyId`) son
-identificadores lógicos que se resuelven por HTTP o se validan en el momento
-de escribir.
-
----
-
-## Seguridad (JWT + roles)
-
-- `users` emite el JWT en el login, firmado con una clave secreta HMAC
-  compartida (`jwt.secret`), con los claims `userId` y `roles`.
-- El resto de servicios actúan como **Resource Server**: validan el token con
-  la misma clave (`NimbusJwtDecoder`, HmacSHA256). Los roles se leen del
-  *claim* `roles` sin prefijo añadido.
-- El `gateway` no valida el JWT: solo enruta y reenvía la cabecera
-  `Authorization` sin modificarla.
-- El frontend guarda el token y lo añade a cada petición mediante un
-  **interceptor** (`Authorization: Bearer ...`). Entre servicios, el token se
-  **reenvía** con un interceptor de `RestTemplate` (`RestTemplateConfig`) que
-  copia la cabecera `Authorization` de la petición entrante a la saliente.
-- Reglas típicas: catálogo de encuestas publicadas y respuesta a encuestas
-  `OPEN` son públicos; crear/editar/publicar/cerrar/borrar una encuesta,
-  ver resultados/estadísticas e invitar exige ser el propietario o `ROLE_ADMIN`;
-  Swagger y `/api/auth/**` son públicos.
+Since each service has its own database, **there are no foreign keys
+across services**: cross-references (for example `Survey.ownerUserId`,
+`SurveyResponse.surveyId`, `Answer.questionId`, `Invitation.surveyId`) are
+logical identifiers that are resolved via HTTP or validated at write time.
 
 ---
 
-## Frontend Angular
+## Security (JWT + Roles)
 
-Aplicación *standalone* con enrutado protegido por `AuthGuard` y por rol
-(`ROLE_DESIGNER` / `ROLE_ADMIN` según la ruta). Rutas principales:
+- `users` issues the JWT at login, signed with a shared HMAC secret key
+  (`jwt.secret`), carrying the `userId` and `roles` claims.
+- The other services act as **Resource Servers**: they validate the token
+  using the same key (`NimbusJwtDecoder`, HmacSHA256). Roles are read from
+  the `roles` claim without any added prefix.
+- The `gateway` does not validate the JWT: it only routes and forwards the
+  `Authorization` header unmodified.
+- The frontend stores the token and attaches it to every request via an
+  **interceptor** (`Authorization: Bearer ...`). Between services, the
+  token is **forwarded** by a `RestTemplate` interceptor
+  (`RestTemplateConfig`) that copies the `Authorization` header from the
+  incoming request to the outgoing one.
+- Typical rules: the catalog of published surveys and answering `OPEN`
+  surveys are public; creating/editing/publishing/closing/deleting a survey,
+  viewing results/statistics, and sending invitations require being the
+  owner or `ROLE_ADMIN`; Swagger and `/api/auth/**` are public.
+
+---
+
+## Angular Frontend
+
+A standalone application with routing protected by `AuthGuard` and by role
+(`ROLE_DESIGNER` / `ROLE_ADMIN` depending on the route). Main routes:
 
 ```
-/login  /signup           acceso
+/login  /signup           authentication
 
-/surveys                  catálogo público de encuestas publicadas
-/surveys/:id               detalle de una encuesta
-/surveys/:id/answer         responder (pública; RESTRICTED exige login)
+/surveys                  public catalog of published surveys
+/surveys/:id               survey detail
+/surveys/:id/answer         answer a survey (public; RESTRICTED requires login)
 
-/surveys/new                crear encuesta (DESIGNER/ADMIN)
-/surveys/manage              gestionar mis encuestas (DESIGNER/ADMIN)
-/surveys/:id/edit            editar encuesta en DRAFT (DESIGNER/ADMIN)
-/surveys/:id/results          resultados agregados (propietario/ADMIN)
-/surveys/:id/statistics        estadísticas (propietario/ADMIN)
-/surveys/:id/invitations        invitaciones (propietario/ADMIN)
+/surveys/new                create a survey (DESIGNER/ADMIN)
+/surveys/manage              manage my surveys (DESIGNER/ADMIN)
+/surveys/:id/edit            edit a survey in DRAFT (DESIGNER/ADMIN)
+/surveys/:id/results          aggregated results (owner/ADMIN)
+/surveys/:id/statistics        statistics (owner/ADMIN)
+/surveys/:id/invitations        invitations (owner/ADMIN)
 ```
 
 ---
 
-## Puesta en marcha con Docker
+## Running with Docker
 
-Requisitos: Docker y Docker Compose.
+Requirements: Docker and Docker Compose.
 
 ```bash
-# Desde la carpeta raíz (donde está docker-compose.yml)
+# From the root folder (where docker-compose.yml is located)
 docker compose up --build
 ```
 
-La primera vez compila las seis imágenes y crea las bases de datos. Cuando
-PostgreSQL esté *healthy*, arrancan `users`, `surveys`, `responses`,
-`statistics`, `invitations` y, por último, `gateway` (que depende de todos
-los anteriores).
+The first run builds the six images and creates the databases. Once
+PostgreSQL is *healthy*, `users`, `surveys`, `responses`, `statistics`,
+`invitations` start up, and finally `gateway` (which depends on all of the
+above).
 
-Comprobación rápida (Swagger de cada servicio):
+Quick check (Swagger for each service):
 
 ```
 http://localhost:8081/swagger-ui.html   # users
@@ -272,13 +270,13 @@ http://localhost:8082/swagger-ui.html   # surveys
 http://localhost:8085/swagger-ui.html   # invitations
 ```
 
-Todo el tráfico de la aplicación puede pasar por el gateway:
+All application traffic can go through the gateway:
 
 ```
 http://localhost:8080/api/...
 ```
 
-Frontend (fuera de Docker):
+Frontend (outside Docker):
 
 ```bash
 cd frontend
@@ -287,39 +285,38 @@ ng serve
 # http://localhost:4200
 ```
 
-Variables de entorno relevantes (ver `docker-compose.yml` y `_env`):
-`MAIL_USERNAME` / `MAIL_PASSWORD` (SMTP de `notifications`),
-`FRONTEND_BASE_URL` (usado por `invitations` para construir el enlace de
-invitación).
+Relevant environment variables (see `docker-compose.yml` and `_env`):
+`MAIL_USERNAME` / `MAIL_PASSWORD` (SMTP for `notifications`),
+`FRONTEND_BASE_URL` (used by `invitations` to build the invitation link).
 
-Parada y persistencia:
+Stopping and persistence:
 
 ```bash
-docker compose down       # conserva los datos (volumen postgres-data)
-docker compose down -v    # borra también los datos (empezar de cero)
-docker compose logs -f surveys   # ver logs de un servicio
+docker compose down       # keeps the data (postgres-data volume)
+docker compose down -v    # also removes the data (fresh start)
+docker compose logs -f surveys   # view logs for a service
 ```
 
-Las URLs entre contenedores y la conexión a la base de datos se inyectan por
-**variables de entorno** en `docker-compose.yml`, por lo que los
-`application.properties` (que usan `localhost`) no se tocan y siguen sirviendo
-para ejecutar desde IntelliJ.
+URLs between containers and the database connection are injected via
+**environment variables** in `docker-compose.yml`, so the
+`application.properties` files (which use `localhost`) remain untouched
+and still work for running from IntelliJ.
 
 ---
 
-## Ejecución en local (IntelliJ)
+## Running Locally (IntelliJ)
 
-1. Arranca un PostgreSQL local y crea las cuatro bases de datos
+1. Start a local PostgreSQL instance and create the four databases
    (`usersurveyDB`, `surveysDB`, `responsesDB`, `invitationsSurveyDB`).
-2. Ajusta credenciales en cada `application.properties` si difieren.
-3. Ejecuta cada microservicio como aplicación Spring Boot (incluido `gateway`).
-4. `ng serve` para el frontend.
+2. Adjust credentials in each `application.properties` if they differ.
+3. Run each microservice as a Spring Boot application (including `gateway`).
+4. `ng serve` for the frontend.
 
 ---
 
-## API — resumen de endpoints
+## API — Endpoint Summary
 
-Todos accesibles a través del gateway en `http://localhost:8080`.
+All accessible through the gateway at `http://localhost:8080`.
 
 **users**
 ```
@@ -331,66 +328,66 @@ GET  /api/user/{id}
 
 **surveys**
 ```
-GET    /api/surveys?q=                     (público, paginado)
-GET    /api/surveys/{id}                   (público, solo PUBLISHED)
-GET    /api/surveys/mine                   (propietario)
-GET    /api/surveys/{id}/manage            (propietario/ADMIN, cualquier estado)
-POST   /api/surveys                        (propietario)
-PUT    /api/surveys/{id}                   (propietario/ADMIN, solo DRAFT)
-PATCH  /api/surveys/{id}/status             (propietario/ADMIN; DRAFT→PUBLISHED→CLOSED)
-DELETE /api/surveys/{id}                   (propietario/ADMIN)
-POST   /api/surveys/{id}/verify-password    (público)
+GET    /api/surveys?q=                     (public, paginated)
+GET    /api/surveys/{id}                   (public, PUBLISHED only)
+GET    /api/surveys/mine                   (owner)
+GET    /api/surveys/{id}/manage            (owner/ADMIN, any status)
+POST   /api/surveys                        (owner)
+PUT    /api/surveys/{id}                   (owner/ADMIN, DRAFT only)
+PATCH  /api/surveys/{id}/status             (owner/ADMIN; DRAFT→PUBLISHED→CLOSED)
+DELETE /api/surveys/{id}                   (owner/ADMIN)
+POST   /api/surveys/{id}/verify-password    (public)
 ```
 
 **responses**
 ```
-POST /api/responses/survey/{surveyId}                  (público u opcional, según access)
-GET  /api/responses/survey/{surveyId}/mine              (autenticado)
-GET  /api/responses/survey/{surveyId}/results            (propietario/ADMIN)
-GET  /api/responses/survey/{surveyId}/timestamps          (propietario/ADMIN)
-GET  /api/responses/survey/{surveyId}/export/csv           (propietario/ADMIN)
-GET  /api/responses/survey/{surveyId}/export/xlsx            (propietario/ADMIN)
+POST /api/responses/survey/{surveyId}                  (public or optional, depending on access)
+GET  /api/responses/survey/{surveyId}/mine              (authenticated)
+GET  /api/responses/survey/{surveyId}/results            (owner/ADMIN)
+GET  /api/responses/survey/{surveyId}/timestamps          (owner/ADMIN)
+GET  /api/responses/survey/{surveyId}/export/csv           (owner/ADMIN)
+GET  /api/responses/survey/{surveyId}/export/xlsx            (owner/ADMIN)
 ```
 
 **statistics**
 ```
-GET /api/statistics/survey/{surveyId}       (propietario/ADMIN)
+GET /api/statistics/survey/{surveyId}       (owner/ADMIN)
 ```
 
 **invitations**
 ```
-POST   /api/invitations/survey/{surveyId}                          (propietario/ADMIN)
-GET    /api/invitations/survey/{surveyId}                          (propietario/ADMIN)
-GET    /api/invitations/token/{token}                              (autenticado)
-POST   /api/invitations/token/{token}/accept                       (autenticado)
-DELETE /api/invitations/{invitationId}                             (propietario/ADMIN)
+POST   /api/invitations/survey/{surveyId}                          (owner/ADMIN)
+GET    /api/invitations/survey/{surveyId}                          (owner/ADMIN)
+GET    /api/invitations/token/{token}                              (authenticated)
+POST   /api/invitations/token/{token}/accept                       (authenticated)
+DELETE /api/invitations/{invitationId}                             (owner/ADMIN)
 ```
 
-**notifications** (uso interno)
+**notifications** (internal use)
 ```
 POST /api/notifications/invitation
 ```
 
 ---
 
-## Diagramas
+## Diagrams
 
-Los diagramas UML (clases del dominio, arquitectura de contenedores, flujos
-de autenticación y de envío de respuestas, y modelo entidad-relación) están en
-[`UML.md`](./UML.md), en formato Mermaid. Se renderizan en GitHub/GitLab, en
-VS Code con la extensión de Mermaid, o en https://mermaid.live.
+The UML diagrams (domain classes, container architecture, authentication
+and response-submission flows, and entity-relationship model) are in
+[`UML.md`](./UML.md), in Mermaid format. They render on GitHub/GitLab, in
+VS Code with the Mermaid extension, or at https://mermaid.live.
 
-También están disponibles como archivos `.mmd` sueltos, listos para
-importar o pegar directamente en un visor Mermaid:
+They are also available as standalone `.mmd` files, ready to import or
+paste directly into a Mermaid viewer:
 
-- [`class-diagram.mmd`](./class-diagram.mmd) — clases del dominio (JPA)
-- [`architecture-c4.mmd`](./architecture-c4.mmd) — contenedores (C4 nivel 2)
-- [`auth-sequence.mmd`](./auth-sequence.mmd) — flujo de autenticación (JWT)
-- [`checkout-sequence.mmd`](./checkout-sequence.mmd) — flujo de envío de una respuesta
-- [`er-diagram.mmd`](./er-diagram.mmd) — modelo entidad-relación
+- [`class-diagram.mmd`](./class-diagram.mmd) — domain classes (JPA)
+- [`architecture-c4.mmd`](./architecture-c4.mmd) — containers (C4 level 2)
+- [`auth-sequence.mmd`](./auth-sequence.mmd) — authentication flow (JWT)
+- [`checkout-sequence.mmd`](./checkout-sequence.mmd) — response-submission flow
+- [`er-diagram.mmd`](./er-diagram.mmd) — entity-relationship model
 
 ---
 
-## Licencia
+## License
 
-Proyecto académico. Uso educativo.
+Academic project. Educational use.
