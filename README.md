@@ -1,7 +1,7 @@
 # Public surveys: a survey platform built on microservices. 
 
-A survey-building platform built as a system of **independent
-microservices**. Six backend services in Spring Boot 4 (five of them
+A platform built as a system of **independent microservices**. 
+Six backend services in Spring Boot 4 (five of them
 accessible through a custom **gateway**, four with their own PostgreSQL
 database) and an Angular frontend. It includes JWT authentication with
 roles, survey creation with different question types, access control (open
