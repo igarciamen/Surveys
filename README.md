@@ -18,13 +18,12 @@ https://github.com/user-attachments/assets/16aa058d-f6b3-414d-9aab-1c85d778fbd2
 
 Each microservice is autonomous: it has its own port, its own database (if
 it needs one), and its own lifecycle. They don't share tables. All traffic
-enters through a single **gateway** (Spring Cloud Gateway, WebFlux reactive
-flavor) that routes each `/api/<area>/**` prefix to the corresponding
-microservice without rewriting the path, forwarding the `Authorization`
-header as-is. When one service needs data from another (for example,
-`surveys` needs the owner's name, or `responses` needs to re-read the
-question schema), it makes an **HTTP call forwarding the user's JWT token**,
-rather than accessing the other service's database directly.
+enters through a single **gateway** that routes each `/api/<area>/**` 
+prefix to the corresponding microservice without rewriting the path, 
+forwarding the `Authorization` header as-is. When one service needs data 
+from another (for example, `surveys` needs the owner's name, or `responses` 
+needs to re-read the question schema), it makes an **HTTP call forwarding the 
+user's JWT token**, rather than accessing the other service's database directly.
 
 | Service         | Port | Database                | Responsibility                                          |
 |------------------|:------:|-------------------------|---------------------------------------------------------|
