@@ -28,14 +28,14 @@ rather than accessing the other service's database directly.
 
 | Service         | Port | Database                | Responsibility                                          |
 |------------------|:------:|-------------------------|---------------------------------------------------------|
-| `gateway`        | 8080   | —                        | Single entry point, static routing                      |
+| `gateway`        | 8080   | -                        | Single entry point, static routing                      |
 | `users`          | 8081   | `usersurveyDB`           | Registration, login, JWT issuance, roles                |
 | `surveys`        | 8082   | `surveysDB`              | Surveys, questions, options, publish/close               |
 | `responses`      | 8083   | `responsesDB`            | Response submission, validation, aggregated results      |
-| `statistics`     | 8084   | — (consumes `responses`) | Statistics and time series for a survey                  |
+| `statistics`     | 8084   | - (consumes `responses`) | Statistics and time series for a survey                  |
 | `invitations`    | 8085   | `invitationsSurveyDB`    | Email invitations, access tokens                         |
-| `notifications`  | 8086   | — (SMTP)                 | Email sending                                             |
-| *frontend*       | 4200   | —                        | Angular application (outside Docker by default)          |
+| `notifications`  | 8086   | - (SMTP)                 | Email sending                                             |
+| *frontend*       | 4200   | -                        | Angular application (outside Docker by default)          |
 
 A **single PostgreSQL instance** hosts the four persistent databases
 (created by `init-databases.sql` on first startup).
@@ -73,7 +73,7 @@ eusurvey/
 ├── docker-compose.yml         # Postgres + 6 microservices (gateway included)
 ├── init-databases.sql         # creates the 4 persistent databases
 │
-├── gateway/                   # Spring Cloud Gateway (WebFlux), no database
+├── gateway/                   # Spring Cloud Gateway, no database
 │   ├── pom.xml
 │   └── src/main/java/com/igarciamen/gateway/...
 ├── users/                     # each microservice: pom.xml + src/
